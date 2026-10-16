@@ -44,12 +44,13 @@ body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:'Spa
              radial-gradient(115% 100% at 50% 64%,transparent 48%,color-mix(in srgb,var(--bg) 55%,transparent) 76%,var(--bg) 100%)}
 .scale{position:absolute;z-index:2;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 30px);transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:5px;pointer-events:none;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
 .scale i{display:block;height:7px;border:1.5px solid var(--ink);border-top:0;opacity:.65;transition:width .2s}
-#map{position:absolute;left:-20%;top:-20%;width:140%;height:140%;display:block;touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none;transform-origin:50% 50%}
+.plane{position:absolute;left:-20%;top:-20%;width:140%;height:140%;transform-origin:50% 50%}
+#map{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none;transform-origin:0 0}
 #map.dragging{cursor:grabbing}
 #map:focus{outline:none}
 #map:focus-visible{outline:2px solid var(--focus);outline-offset:-4px}
-.minor path{fill:none;stroke:var(--contour);opacity:var(--c-minor);stroke-width:calc(var(--u,1) * .8px)}
-.major path{fill:none;stroke:var(--contour);opacity:var(--c-major);stroke-width:calc(var(--u,1) * 1.25px)}
+.minor{fill:none;stroke:var(--contour);stroke-opacity:var(--c-minor);stroke-width:calc(var(--u,1) * .8px)}
+.major{fill:none;stroke:var(--contour);stroke-opacity:var(--c-major);stroke-width:calc(var(--u,1) * 1.25px)}
 .trail{fill:none;stroke:var(--line);stroke-width:calc(var(--u,1) * 2px);stroke-linecap:round;stroke-linejoin:round;opacity:.85;transition:opacity .3s}
 .trail-hit{fill:none;stroke:transparent;stroke-width:calc(var(--u,1) * 14px);pointer-events:stroke;cursor:pointer}
 .focusing .trail{opacity:.28}
@@ -72,7 +73,7 @@ body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:'Spa
 
 /* overlays */
 .intro{position:absolute;left:24px;top:calc(env(safe-area-inset-top,0px) + 24px);z-index:2;padding:22px 24px 22px;width:292px;max-width:calc(100% - 48px);pointer-events:none;
-  background:color-mix(in srgb,var(--bg) 80%,transparent);border:1px solid var(--rule);border-radius:6px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+  background:color-mix(in srgb,var(--bg) 93%,transparent);border:1px solid var(--rule);border-radius:6px}
 .intro>*{pointer-events:auto}
 h1{font-size:60px;line-height:.9;letter-spacing:-.035em;font-weight:700;margin:0}
 .lede{margin:12px 0 0;font-size:15px;line-height:1.45;color:var(--muted);max-width:30ch}
@@ -82,7 +83,7 @@ h1{font-size:60px;line-height:.9;letter-spacing:-.035em;font-weight:700;margin:0
 .stats dd{margin:0;font-size:24px;font-weight:500;letter-spacing:-.01em;font-variant-numeric:tabular-nums}
 
 .card{position:absolute;z-index:3;left:24px;bottom:calc(env(safe-area-inset-bottom,0px) + 24px);width:292px;max-width:calc(100% - 48px);
-  background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:22px 24px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+  background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:22px 24px}
 .card .hint{margin:0;font-size:15px;line-height:1.5;color:var(--muted)}
 .card h2{margin:0;font-size:26px;line-height:1.1;font-weight:700;letter-spacing:-.015em}
 .card .elev{margin:4px 0 0;font-size:15px;color:var(--peak);font-weight:500;font-variant-numeric:tabular-nums}
@@ -126,7 +127,7 @@ dialog.help .close:focus-visible{outline:2px solid var(--focus);outline-offset:2
 @media (hover:none){.touch-only{display:block}.mouse-only{display:none}}
 
 @media (max-width:760px){
-  .intro{left:0;top:0;width:100%;max-width:none;border:0;border-radius:0;backdrop-filter:none;-webkit-backdrop-filter:none;padding:calc(env(safe-area-inset-top,0px) + 18px) 20px 28px;background:linear-gradient(180deg,var(--scrim) 0%,var(--scrim) 65%,transparent 100%)}
+  .intro{left:0;top:0;width:100%;max-width:none;border:0;border-radius:0;padding:calc(env(safe-area-inset-top,0px) + 18px) 20px 28px;background:linear-gradient(180deg,var(--scrim) 0%,var(--scrim) 65%,transparent 100%)}
   h1{font-size:44px}
   .lede{font-size:15px;margin-top:8px;max-width:none}
   .stats{grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:14px;padding-top:12px}
@@ -146,14 +147,9 @@ dialog.help .close:focus-visible{outline:2px solid var(--focus);outline-offset:2
 </head>
 <body>
 <div class="app">
+<div class="plane" id="plane">
 <svg id="map" tabindex="0" aria-label="Map of 29 hikes covering New Hampshire's 48 four-thousand-foot peaks. Drag to move, scroll or pinch to zoom, arrow keys and plus or minus also work." role="application">
-<defs>
-<linearGradient id="fadeX" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#000"/><stop offset=".05" stop-color="#fff"/><stop offset=".95" stop-color="#fff"/><stop offset="1" stop-color="#000"/></linearGradient>
-<linearGradient id="fadeY" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#000"/><stop offset=".05" stop-color="#fff"/><stop offset=".95" stop-color="#fff"/><stop offset="1" stop-color="#000"/></linearGradient>
-<mask id="mx" maskUnits="userSpaceOnUse" x="-820" y="-420" width="2840" height="2440"><rect x="-800" y="-400" width="2800" height="2400" fill="url(#fadeX)"/></mask>
-<mask id="my" maskUnits="userSpaceOnUse" x="-820" y="-420" width="2840" height="2440"><rect x="-800" y="-400" width="2800" height="2400" fill="url(#fadeY)"/></mask>
-</defs>
-<g mask="url(#my)"><g mask="url(#mx)">
+<g class="terrain">
 <g class="minor">
 <path d="M1995.6 936.3 L1986.9 935.4 L1979.4 936.2 L1977.0 935.7 L1974.9 934.0 L1973.6 931.8 L1971.9 923.9 L1970.1 920.8 L1951.9 903.3 L1942.8 897.2 L1939.4 896.3 L1935.6 896.1 L1927.4 897.5 L1922.8 892.2 L1918.5 885.7 L1914.4 884.0 L1911.2 885.1 L1909.6 887.1 L1908.8 889.4 L1909.4 894.4 L1911.4 898.2 L1917.1 903.2 L1919.4 907.1 L1920.6 913.1 L1921.5 926.8 L1922.7 932.0 L1926.2 937.5 L1930.1 942.2 L1932.6 947.5 L1930.8 951.8 L1926.5 957.5 L1925.9 960.6 L1926.3 963.8 L1927.5 965.5 L1929.4 966.4 L1938.0 967.6 L1931.9 969.2 L1919.4 970.2 L1916.2 971.3 L1912.7 973.6 L1911.2 977.1 L1911.2 981.8 L1912.3 985.4 L1915.8 991.9 L1915.6 995.6 L1914.1 998.3 L1902.5 1008.7 L1898.0 1013.5 L1895.6 1018.2 L1894.7 1024.4 L1895.0 1030.6 L1896.2 1036.7 L1897.5 1039.1 L1900.8 1042.6 L1907.8 1047.2 L1913.2 1049.5 L1918.1 1050.3 L1925.6 1050.2 L1929.2 1051.1 L1932.4 1052.7 L1936.5 1059.4 L1938.3 1069.4 L1938.1 1077.6 L1936.4 1085.6 L1933.8 1094.4 L1925.0 1118.1 L1923.8 1123.1 L1923.5 1126.9 L1924.3 1131.9 L1926.2 1136.6 L1932.0 1148.0 L1936.2 1153.2 L1940.6 1155.8 L1943.1 1156.4 L1945.6 1156.1 L1948.4 1154.5 L1950.8 1150.6 L1955.5 1138.2 L1958.8 1131.6 L1962.2 1126.9 L1967.3 1122.4 L1978.3 1109.9 L1981.9 1108.5 L1984.4 1108.7 L1991.6 1112.7 L1995.6 1113.7"></path>
 <path d="M1995.6 1211.2 L1990.6 1210.1 L1985.6 1210.1 L1979.4 1211.2 L1975.0 1212.7 L1971.9 1214.6 L1968.1 1218.0 L1965.9 1222.1 L1964.2 1226.9 L1962.0 1236.0 L1961.9 1243.1 L1962.5 1247.5 L1967.5 1262.5 L1971.8 1290.6 L1970.3 1293.7 L1965.6 1295.8 L1953.1 1296.1 L1942.6 1297.8 L1937.6 1297.5 L1929.4 1295.2 L1925.6 1295.2 L1921.7 1296.6 L1915.6 1300.7 L1911.9 1301.7 L1906.4 1301.9 L1901.7 1303.7 L1896.8 1307.2 L1892.6 1312.8 L1887.5 1317.5 L1883.1 1315.8 L1877.5 1312.5 L1868.1 1302.3 L1857.2 1297.6 L1854.4 1293.1 L1853.9 1290.6 L1856.6 1273.1 L1856.9 1263.2 L1858.1 1250.6 L1857.7 1247.3 L1851.7 1237.5 L1852.4 1232.4 L1857.7 1222.7 L1858.9 1218.1 L1858.8 1213.2 L1856.1 1203.1 L1857.2 1197.8 L1863.4 1187.5 L1866.9 1184.2 L1870.9 1181.8 L1872.6 1180.1 L1873.7 1177.9 L1872.6 1175.2 L1870.3 1172.9 L1867.0 1170.6 L1863.0 1166.4 L1860.9 1162.8 L1857.6 1155.0 L1855.4 1152.1 L1851.9 1149.3 L1840.3 1142.7 L1835.6 1141.7 L1830.6 1141.9 L1812.0 1147.3 L1808.9 1151.9 L1807.8 1156.9 L1808.0 1161.9 L1810.1 1174.4 L1811.2 1188.1 L1810.9 1194.4 L1809.1 1205.6 L1809.1 1210.6 L1810.3 1215.6 L1812.4 1219.8 L1815.3 1222.7 L1822.1 1228.0 L1823.5 1231.1 L1823.6 1234.4 L1822.6 1237.6 L1817.2 1241.4 L1813.2 1242.7 L1806.1 1242.5 L1802.9 1241.1 L1797.6 1237.4 L1794.0 1232.2 L1791.0 1226.7 L1782.3 1217.7 L1778.4 1207.5 L1776.3 1203.8 L1766.6 1192.4 L1763.6 1187.3 L1759.5 1178.3 L1755.6 1172.8 L1751.9 1169.4 L1739.6 1162.7 L1731.6 1157.3 L1730.5 1154.4 L1730.4 1151.9 L1733.6 1141.8 L1734.8 1128.1 L1734.2 1123.1 L1731.7 1114.4 L1729.6 1104.4 L1727.4 1099.3 L1722.2 1092.7 L1719.3 1086.9 L1717.0 1077.6 L1716.2 1069.4 L1714.7 1065.6 L1708.4 1057.5 L1706.2 1052.8 L1702.5 1047.5 L1694.7 1041.1 L1691.8 1038.0 L1690.2 1034.4 L1689.5 1030.6 L1689.5 1018.1 L1686.0 1000.6 L1685.2 983.1 L1683.4 976.7 L1681.6 975.0 L1678.2 973.3 L1672.1 972.4 L1657.8 982.9 L1651.7 994.7 L1647.1 1006.6 L1645.9 1013.1 L1645.8 1018.1 L1647.4 1024.7 L1655.4 1038.2 L1660.3 1048.1 L1662.1 1053.1 L1662.1 1058.1 L1659.2 1081.9 L1659.5 1086.9 L1660.8 1091.8 L1665.9 1102.6 L1673.1 1111.0 L1675.2 1114.4 L1682.5 1132.3 L1683.0 1139.4 L1682.3 1148.0 L1682.9 1152.4 L1687.5 1158.7 L1692.3 1167.9 L1702.9 1172.2 L1705.0 1178.1 L1706.2 1190.6 L1708.1 1196.7 L1711.7 1203.2 L1717.7 1210.5 L1722.3 1218.1 L1728.6 1226.7 L1732.1 1237.8 L1736.8 1243.6 L1737.8 1246.7 L1739.3 1255.6 L1741.8 1261.9 L1742.0 1267.5 L1743.0 1271.3 L1744.0 1273.0 L1762.9 1291.9 L1764.1 1298.1 L1764.9 1315.6 L1764.2 1319.4 L1762.0 1326.1 L1762.0 1329.4 L1762.5 1332.5 L1769.3 1337.5 L1770.7 1340.6 L1771.0 1343.1 L1764.8 1363.1 L1756.6 1377.4 L1736.3 1422.2 L1736.0 1428.1 L1737.5 1437.5 L1736.7 1443.1 L1734.4 1449.4 L1727.2 1462.2 L1723.9 1471.9 L1722.6 1477.8 L1722.5 1482.5 L1723.3 1485.7 L1728.9 1497.3 L1730.2 1501.9 L1730.0 1506.8 L1727.7 1510.4 L1722.8 1512.7 L1719.4 1512.9 L1717.0 1512.7 L1709.4 1510.1 L1705.6 1510.3 L1702.3 1512.1 L1699.1 1517.4 L1695.6 1519.9 L1685.6 1524.2 L1676.7 1529.2 L1661.8 1534.1 L1657.2 1536.9 L1651.1 1543.0 L1636.8 1552.2 L1631.8 1554.2 L1620.2 1556.9 L1612.3 1562.4 L1608.0 1564.2 L1589.4 1567.1 L1585.6 1567.0 L1580.6 1565.7 L1558.0 1555.5 L1554.4 1554.9 L1551.4 1555.9 L1547.1 1560.0 L1545.0 1562.3 L1543.6 1565.6 L1543.7 1568.1 L1546.2 1572.4 L1552.4 1578.8 L1561.9 1592.9 L1567.6 1598.3 L1587.7 1606.7 L1596.8 1609.4 L1605.6 1614.8 L1610.6 1616.5 L1615.6 1616.8 L1619.4 1616.2 L1623.1 1614.9 L1630.6 1610.9 L1634.4 1609.7 L1638.1 1609.5 L1643.1 1610.6 L1648.0 1612.4 L1653.1 1616.3 L1655.4 1620.6 L1656.4 1624.4 L1658.0 1643.7 L1656.9 1646.8 L1651.8 1651.9 L1651.0 1656.9 L1652.3 1662.8 L1657.6 1672.3 L1658.1 1681.9 L1659.2 1691.9 L1657.8 1697.8 L1652.3 1707.3 L1649.6 1716.8 L1645.8 1725.6 L1644.9 1731.9 L1645.5 1736.9 L1647.3 1743.3 L1651.1 1747.5 L1657.3 1751.7 L1657.9 1752.7 L1657.2 1767.6 L1660.5 1793.1 L1660.2 1796.9 L1658.3 1801.6 L1657.3 1802.8 L1651.8 1803.0 L1643.0 1797.0 L1637.7 1797.0 L1629.1 1803.0 L1617.8 1809.2 L1613.1 1811.0 L1609.4 1810.7 L1606.2 1809.2 L1600.4 1803.7 L1597.5 1798.6 L1597.3 1796.9 L1599.1 1788.1 L1599.0 1785.6 L1598.0 1782.2 L1591.9 1779.7 L1589.4 1779.6 L1585.6 1780.2 L1580.6 1782.5 L1573.8 1787.8 L1570.0 1792.3 L1568.9 1798.7 L1563.0 1804.8 L1561.6 1807.3 L1564.2 1818.1 L1563.5 1823.2 L1560.6 1825.4 L1553.0 1829.0 L1548.9 1831.9 L1546.4 1836.1 L1545.7 1839.4 L1546.0 1842.8 L1547.9 1846.9 L1548.8 1850.6 L1550.0 1860.6 L1551.1 1863.1 L1554.4 1864.7 L1562.6 1867.4 L1568.4 1871.0 L1577.6 1882.4 L1587.3 1892.7 L1593.0 1902.2 L1597.5 1906.4 L1601.2 1908.9 L1606.9 1910.8 L1621.9 1913.2 L1623.2 1913.1 L1623.8 1912.4 L1622.1 1902.8 L1620.7 1879.4 L1621.0 1873.2 L1623.5 1866.6 L1626.8 1862.0 L1631.8 1856.5 L1638.5 1853.0 L1642.4 1851.9 L1647.7 1851.8 L1656.9 1854.6 L1667.4 1856.4 L1672.4 1862.8 L1673.2 1868.1 L1662.5 1886.2 L1657.8 1900.8 L1653.8 1906.6 L1652.7 1907.8 L1650.6 1908.9 L1629.9 1917.0 L1628.7 1918.4 L1628.7 1926.9 L1627.7 1940.6 L1629.1 1954.4 L1629.6 1975.6 L1628.5 1984.4 L1625.5 1995.6"></path>
@@ -863,7 +859,7 @@ dialog.help .close:focus-visible{outline:2px solid var(--focus);outline-offset:2
 <path d="M138.8 1141.8 L141.9 1143.0 L144.8 1147.0 L146.1 1151.9 L145.3 1156.8 L142.2 1161.9 L138.1 1165.4 L133.3 1168.1 L129.4 1168.6 L126.6 1167.9 L123.9 1164.4 L122.6 1161.8 L122.4 1157.3 L124.2 1153.1 L127.7 1147.9 L132.6 1143.4 L136.3 1141.8 L138.8 1141.8"></path>
 <path d="M839.4 670.9 L846.9 669.7 L850.6 669.9 L854.4 670.9 L857.8 672.4 L858.9 678.1 L857.8 682.9 L852.5 694.1 L842.5 707.6 L839.4 710.4 L836.9 711.7 L834.4 711.9 L831.9 711.1 L827.4 707.9 L824.9 700.6 L824.0 693.1 L824.7 686.9 L827.4 680.3 L832.1 674.7 L836.6 671.8 L839.4 670.9"></path>
 </g>
-</g></g>
+</g>
 <g id="trails">
 <path class="trail" data-h="0" d="M906.9 717.3 L906.9 716.9 L906.7 716.1 L906.1 715.0 L905.1 713.5 L904.3 712.3 L903.7 711.5 L903.1 711.2 L902.4 711.4 L901.8 711.9 L901.2 712.9 L900.7 712.9 L900.5 711.9 L900.1 711.5 L899.5 711.6 L899.0 711.8 L898.4 712.2 L897.9 711.9 L897.5 710.8 L896.7 710.1 L895.5 709.8 L894.5 709.6 L893.5 709.7 L892.5 709.8 L891.5 709.9 L890.5 709.9 L889.5 709.8 L888.6 709.7 L887.7 709.6 L886.7 709.5 L885.5 709.3 L884.5 709.1 L883.7 708.9 L882.6 708.6 L881.5 708.1 L880.4 707.6 L879.4 707.0 L878.5 706.7 L877.6 706.5 L876.8 706.1 L875.9 705.5 L875.1 705.3 L874.2 705.4 L873.5 706.0 L872.9 707.0 L872.2 708.0 L871.4 709.1 L870.6 709.7 L869.9 710.0 L869.2 709.9 L868.5 709.3 L867.7 709.0 L866.9 709.0 L866.1 709.4 L865.2 710.3 L864.3 711.0 L863.4 711.7 L862.7 712.2 L862.2 712.6 L861.6 712.5 L861.0 712.1 L860.4 711.7 L859.7 711.5 L859.0 711.4 L858.3 711.2 L857.5 710.9 L856.8 710.5 L855.9 710.3 L854.9 710.3 L854.0 710.3 L853.2 710.2 L852.3 710.0 L851.4 709.7 L850.6 709.5 L849.9 709.3 L849.2 709.1 L848.4 708.9 L847.9 708.6 L847.6 708.1 L847.5 707.6 L847.6 706.9 L847.4 706.6 L846.9 706.6 L846.4 706.7 L845.9 707.0 L845.4 707.2 L844.9 707.3 L844.4 707.2 L843.7 707.0 L843.0 706.8 L842.3 706.4 L841.6 706.0 L841.2 705.6 L840.9 705.0 L840.9 704.2 L841.0 703.3 L841.2 702.5 L841.3 701.7 L841.1 700.9 L841.1 700.2 L841.1 699.4 L841.2 698.7 L841.4 697.9 L841.4 697.1 L841.4 696.1 L841.2 695.3 L841.0 694.7 L840.6 694.2 L840.0 693.9 L839.7 693.6 L839.6 693.1 L839.7 693.1 L839.9 693.7 L840.3 694.1 L841.0 694.4 L841.4 694.9 L841.4 695.7 L841.4 696.5 L841.3 697.5 L841.2 698.3 L841.1 698.9 L841.1 699.7 L841.1 700.5 L841.4 701.1 L842.2 701.5 L842.8 701.8 L843.3 702.1 L843.8 702.3 L844.3 702.4 L844.7 702.6 L845.1 702.9 L845.8 702.9 L846.8 702.7 L847.7 702.7 L848.5 702.9 L849.3 703.1 L850.2 703.3 L851.0 703.4 L851.6 703.4 L852.4 703.4 L853.2 703.5 L854.0 703.8 L854.7 704.3 L855.3 704.6 L855.9 704.9 L856.5 705.1 L857.2 705.1 L857.9 705.2 L858.8 705.3 L859.6 705.3 L860.2 705.0 L860.9 704.8 L861.7 704.6 L862.4 704.4 L863.1 704.2 L863.5 704.3 L863.6 704.7 L863.5 705.3 L863.1 706.0 L863.1 706.4 L863.4 706.5 L863.7 706.7 L864.1 707.0 L864.2 707.6 L864.1 708.5 L864.2 709.3 L864.5 710.0 L865.1 709.9 L866.1 709.1 L867.0 708.8 L867.8 709.1 L868.6 709.4 L869.2 709.9 L869.9 710.0 L870.7 709.7 L871.5 709.0 L872.3 707.9 L873.0 706.8 L873.5 705.9 L874.2 705.4 L875.1 705.3 L875.9 705.5 L876.8 706.0 L877.6 706.4 L878.6 706.8 L879.5 707.2 L880.5 707.6 L881.5 708.1 L882.7 708.6 L883.8 708.9 L884.7 709.1 L885.6 709.3 L886.7 709.5 L887.7 709.6 L888.6 709.7 L889.5 709.8 L890.6 709.9 L891.7 709.9 L892.7 709.8 L893.7 709.7 L894.7 709.6 L895.7 709.8 L896.8 710.1 L897.6 710.9 L898.0 712.0 L898.4 712.3 L899.0 711.9 L899.5 711.6 L900.1 711.6 L900.5 712.1 L900.8 713.0 L901.3 713.0 L901.9 712.0 L902.5 711.4 L903.1 711.2 L903.8 711.5 L904.4 712.3 L905.2 713.5 L906.2 715.0 L906.7 716.1 L906.9 716.9 L906.9 717.3"></path>
 <path class="trail" data-h="1" d="M694.0 780.4 L694.4 780.4 L695.2 780.5 L695.7 780.7 L695.9 780.8 L696.3 781.3 L696.7 781.9 L697.1 782.3 L697.6 782.5 L698.2 783.0 L698.9 783.6 L699.4 784.1 L699.6 784.5 L699.9 785.0 L700.4 785.7 L700.8 786.0 L701.3 785.9 L701.8 786.0 L702.5 786.2 L703.1 786.3 L703.7 786.1 L704.3 785.8 L705.0 785.4 L705.5 785.0 L705.9 784.4 L706.2 784.1 L706.5 784.0 L707.0 783.9 L707.7 783.8 L708.4 783.5 L709.2 782.9 L709.8 782.4 L710.4 781.9 L711.1 781.6 L711.9 781.4 L712.6 781.2 L713.4 781.0 L714.2 780.8 L715.1 780.7 L715.8 780.5 L716.4 780.3 L717.1 780.1 L717.9 779.9 L718.8 779.7 L719.9 779.4 L720.8 779.2 L721.4 779.2 L722.1 779.4 L722.6 779.8 L723.2 780.0 L724.0 780.1 L724.7 780.4 L725.4 780.9 L726.1 781.5 L727.0 782.3 L727.7 782.7 L728.3 782.9 L729.0 783.1 L729.7 783.3 L730.2 783.6 L730.6 783.9 L730.9 784.6 L731.1 785.5 L731.4 786.1 L731.9 786.4 L732.3 786.6 L732.7 786.6 L733.2 786.3 L733.8 785.9 L734.7 785.4 L735.7 784.9 L736.5 784.6 L737.0 784.4 L737.5 784.2 L737.9 783.9 L738.5 783.5 L739.3 782.9 L739.8 782.3 L740.0 781.8 L740.3 781.2 L740.7 780.5 L741.3 780.0 L742.1 779.6 L742.9 779.2 L743.5 778.9 L744.3 778.6 L745.2 778.4 L746.0 778.0 L746.7 777.5 L747.4 776.8 L747.9 775.9 L748.5 775.3 L749.3 774.9 L749.9 774.5 L750.3 773.9 L750.8 773.6 L751.6 773.5 L752.2 773.4 L752.9 773.3 L753.4 773.2 L754.0 773.1 L754.5 773.0 L754.9 773.0 L755.5 773.0 L756.3 773.0 L756.6 773.2 L756.6 773.5 L756.4 773.8 L756.0 774.3 L755.7 774.7 L755.3 775.1 L755.3 775.1 L755.7 774.7 L756.0 774.3 L756.4 773.8 L756.6 773.5 L756.6 773.2 L756.3 773.0 L755.5 773.0 L754.9 773.0 L754.5 773.0 L754.0 773.1 L753.4 773.2 L752.9 773.3 L752.2 773.4 L751.6 773.5 L750.8 773.6 L750.3 773.9 L749.9 774.5 L749.3 774.9 L748.5 775.3 L747.9 775.9 L747.4 776.8 L746.7 777.5 L746.0 778.0 L745.2 778.4 L744.3 778.6 L743.5 778.9 L742.9 779.2 L742.1 779.6 L741.3 780.0 L740.7 780.5 L740.3 781.2 L740.0 781.8 L739.8 782.3 L739.3 782.9 L738.5 783.5 L737.9 783.9 L737.5 784.2 L737.0 784.4 L736.5 784.6 L735.7 784.9 L734.7 785.4 L733.8 785.9 L733.2 786.3 L732.7 786.6 L732.3 786.6 L731.9 786.4 L731.4 786.1 L731.1 785.5 L730.9 784.6 L730.6 783.9 L730.2 783.6 L729.7 783.3 L729.0 783.1 L728.3 782.9 L727.7 782.7 L727.0 782.3 L726.1 781.5 L725.4 780.9 L724.7 780.4 L724.0 780.1 L723.2 780.0 L722.6 779.8 L722.1 779.4 L721.4 779.2 L720.8 779.2 L719.9 779.4 L718.8 779.7 L717.9 779.9 L717.1 780.1 L716.4 780.3 L715.8 780.5 L715.1 780.7 L714.2 780.8 L713.4 781.0 L712.6 781.2 L711.9 781.4 L711.1 781.6 L710.4 781.9 L709.8 782.4 L709.2 782.9 L708.4 783.5 L707.7 783.8 L707.0 783.9 L706.5 784.0 L706.2 784.1 L705.9 784.4 L705.5 785.0 L705.0 785.4 L704.3 785.8 L703.7 786.1 L703.1 786.3 L702.5 786.2 L701.8 786.0 L701.3 785.9 L700.8 786.0 L700.4 785.7 L699.9 785.0 L699.6 784.5 L699.4 784.1 L698.9 783.6 L698.2 783.0 L697.6 782.5 L697.1 782.3 L696.7 781.9 L696.3 781.3 L695.9 780.8 L695.7 780.7 L695.2 780.5 L694.4 780.4 L694.0 780.4"></path>
@@ -1009,6 +1005,7 @@ dialog.help .close:focus-visible{outline:2px solid var(--focus);outline-offset:2
 <g class="peak" data-p="47" tabindex="0" role="button" aria-label="Mount Isolation, 4,004 feet. Show the hike."><circle class="pk-hit" r="15"></circle><circle class="pk-ring" r="12"></circle><path class="pk-tri" d="M0 -7 L6.5 4.5 L-6.5 4.5 Z"></path><text class="pk-label" x="10" y="4">Isolation</text></g>
 </g>
 </svg>
+</div>
 
 <div class="haze" aria-hidden="true"></div>
 <div class="scale" aria-hidden="true"><i id="scalebar"></i><span id="scaletext">5 mi</span></div>
@@ -1068,16 +1065,19 @@ const BOUNDS={x0:110,y0:150,x1:1090,y1:1390};   // all routes and summits
 let u=1, cx=600, cy=800, fitU=1, maxU=2;       // u = map units per screen pixel
 const MAP={x0:-800,y0:-400,x1:2000,y1:2000,w:2800,h:2400};   // full extent of the drawn terrain
 const app=document.querySelector('.app');
+const plane=document.getElementById('plane');
+let appRect=app.getBoundingClientRect();
+let busyUntil=0;   // the map is being moved; hold the sway so the GPU only does one thing
 // element size (the tilted map plane is drawn larger than the window) vs. the visible window
 const PLANE={x:1.40,y:1.40};   // must match #map width/height in CSS
 function size(){return {w:Math.max(1,app.clientWidth*PLANE.x),h:Math.max(1,app.clientHeight*PLANE.y)};}
 function appSize(){return {w:Math.max(1,app.clientWidth),h:Math.max(1,app.clientHeight)};}
 /* ---------- 3D: a slight tilt, and a slow sway like the earth turning ---------- */
 const TILT=24*Math.PI/180, PERSP=1350; let spin=0;
-function setPlane(){svg.style.transform=`rotateX(${TILT}rad) rotateZ(${spin.toFixed(4)}rad)`;}
+function setPlane(){plane.style.transform=`rotateX(${TILT}rad) rotateZ(${spin.toFixed(4)}rad)`;}
 // window point -> point on the untilted map plane (element pixels)
 function toLocal(clientX,clientY){
-  const ar=app.getBoundingClientRect(), W=ar.width, H=ar.height, X=clientX-ar.left, Y=clientY-ar.top;
+  const ar=appRect, W=ar.width, H=ar.height, X=clientX-ar.left, Y=clientY-ar.top;
   const ox=W*0.5, oy=H*0.45, d=PERSP, ct=Math.cos(TILT), st=Math.sin(TILT);
   const yr=d*((Y-oy)-(H/2-oy))/(d*ct+(Y-oy)*st);
   const s=d/(d-yr*st);
@@ -1089,7 +1089,8 @@ function toLocal(clientX,clientY){
 setPlane();
 if(!reduce){
   const t0=performance.now();
-  const sway=t=>{spin=(1.8*Math.PI/180)*Math.sin((t-t0)/60000*2*Math.PI); setPlane(); requestAnimationFrame(sway);};
+  let fr=0;
+  const sway=t=>{ if((fr++&1)===0 && t>busyUntil){spin=(1.8*Math.PI/180)*Math.sin((t-t0)/60000*2*Math.PI); setPlane();} requestAnimationFrame(sway);};
   requestAnimationFrame(sway);
 }
 function sidePad(){return 0;}
@@ -1131,10 +1132,26 @@ function clampAxis(c,view,lo,hi,pref){
   return view<=len ? Math.min(b,Math.max(a,c)) : Math.min(a,Math.max(b,pref));
 }
 function clampCenter(){const {w,h}=appSize(); u=Math.min(u,maxU); cx=clampAxis(cx,w*u,MAP.x0,MAP.x1,prefX(u)); cy=clampAxis(cy,h*u,MAP.y0,MAP.y1,prefY(u));}
-let raf=0;
-function schedule(){if(!raf)raf=requestAnimationFrame(render);}
-function render(){
+/* While the map moves we only slide and scale the already-drawn picture (cheap, GPU),
+   then redraw it properly once it settles. */
+let raf=0, commitTimer=0, committed=null;
+function schedule(){if(!raf)raf=requestAnimationFrame(preview);}
+function requestCommit(){clearTimeout(commitTimer);commitTimer=setTimeout(commit,0);}
+function preview(){
   raf=0; clampCenter();
+  if(!committed){commit();return;}
+  const {w,h}=size();
+  const vx=cx-w*u/2, vy=cy-h*u/2, vx0=committed.cx-w*committed.u/2, vy0=committed.cy-h*committed.u/2;
+  const s=committed.u/u, tx=(vx0-vx)/u, ty=(vy0-vy)/u;
+  svg.style.willChange='transform';
+  svg.style.transform=`translate(${tx.toFixed(2)}px,${ty.toFixed(2)}px) scale(${s.toFixed(5)})`;
+  updateScale(); busyUntil=performance.now()+400;
+  const far=s>1.6||s<0.62||Math.abs(tx)>w*0.16||Math.abs(ty)>h*0.16;
+  clearTimeout(commitTimer); commitTimer=setTimeout(commit,far?0:160);
+}
+function render(){commit();}
+function commit(){
+  clearTimeout(commitTimer); clampCenter();
   const {w,h}=size();
   svg.setAttribute('viewBox',`${(cx-w*u/2).toFixed(2)} ${(cy-h*u/2).toFixed(2)} ${(w*u).toFixed(2)} ${(h*u).toFixed(2)}`);
   svg.style.setProperty('--u',u.toFixed(5));
@@ -1144,6 +1161,8 @@ function render(){
   const all=true; svg.classList.add('labels'); svg.classList.toggle('small',1/u<1.3); svg.classList.toggle('tiny',1/u<0.5);
   updateScale();
   placeLabels(cx-w*u/2, cy-h*u/2, all);
+  svg.style.transform=''; svg.style.willChange='';
+  committed={cx,cy,u};
 }
 const scaleBar=document.getElementById('scalebar'), scaleText=document.getElementById('scaletext');
 const UNITS_PER_MILE=27.2;   // map units in one mile
@@ -1185,11 +1204,11 @@ let anim=0;
 function animateTo(tx,ty,tu){
   cancelAnimationFrame(anim);
   { const {w,h}=appSize(); tu=Math.min(maxU,tu); tx=clampAxis(tx,w*tu,MAP.x0,MAP.x1,prefX(tu)); ty=clampAxis(ty,h*tu,MAP.y0,MAP.y1,prefY(tu)); }
-  if(reduce){cx=tx;cy=ty;u=tu;schedule();return;}
+  if(reduce){cx=tx;cy=ty;u=tu;commit();return;}
   const sx=cx,sy=cy,su=u,t0=performance.now(),D=320;
   const step=t=>{const k=Math.min(1,(t-t0)/D),e=1-Math.pow(1-k,3);
-    cx=sx+(tx-sx)*e;cy=sy+(ty-sy)*e;u=Math.exp(Math.log(su)+(Math.log(tu)-Math.log(su))*e);render();
-    if(k<1)anim=requestAnimationFrame(step);};
+    cx=sx+(tx-sx)*e;cy=sy+(ty-sy)*e;u=Math.exp(Math.log(su)+(Math.log(tu)-Math.log(su))*e);
+    if(k<1){preview();anim=requestAnimationFrame(step);} else commit();};
   anim=requestAnimationFrame(step);
 }
 function zoomAt(px,py,factor,animate){
@@ -1269,7 +1288,7 @@ function setActive(h,p){
   svg.classList.toggle('focusing',h!=null);
   trailEls.forEach((el,i)=>el.classList.toggle('on',i===h));
   peakEls.forEach((el,i)=>el.classList.toggle('on',h!=null&&DATA.peaks[i].h===h));
-  renderCard(); schedule();
+  renderCard(); requestCommit();
   if(h==null){trace.setAttribute('d','');return;}
   if(!sameHike)drawTrace(h);
 }
@@ -1364,7 +1383,7 @@ peakEls.forEach(el=>{
   el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();const i=+el.dataset.p;pinned={h:DATA.peaks[i].h,p:i};setActive(pinned.h,pinned.p);renderCard();ensureVisible(pinned.h);}});
 });
 
-new ResizeObserver(()=>{ const {w,h}=appSize(); maxU=Math.min(MAP.w/w,MAP.h/h); if(Math.abs(u-fitU)<1e-6) fit(false); else schedule(); }).observe(svg);
+new ResizeObserver(()=>{ appRect=app.getBoundingClientRect(); const {w,h}=appSize(); maxU=Math.min(MAP.w/w,MAP.h/h); if(Math.abs(u-fitU)<1e-6) fit(false); commit(); }).observe(app);
 /* light / dark switch: follows the device until you choose, then remembers your choice */
 const themeBtn=document.getElementById('theme'), darkQ=window.matchMedia('(prefers-color-scheme: dark)');
 const SUN='<svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="3.6" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.3 4.3l1.4 1.4M14.3 14.3l1.4 1.4M4.3 15.7l1.4-1.4M14.3 5.7l1.4-1.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>';
